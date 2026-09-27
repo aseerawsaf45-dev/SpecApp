@@ -1,8 +1,13 @@
+import '../../../shared/widgets/gradient_mesh_background.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../shared/widgets/animated_glowing_border.dart';
+import '../../../shared/widgets/pressable_scale.dart';
+import '../../../shared/widgets/pulsing_beacon.dart';
+import '../../../shared/widgets/staggered_entrance.dart';
 
 class ChatScreen extends StatefulWidget {
   final String channelName;
@@ -42,7 +47,7 @@ class _ChatScreenState extends State<ChatScreen> {
     super.initState();
     _messages = [
       _ChatMessageItem(
-        sender: 'Aseer Awsaf',
+        sender: 'Salman Farshi Alam',
         role: 'Event Lead',
         time: '09:12 AM',
         message: 'The registration location has been changed to the Auditorium Entrance due to expected crowd movement from the main gate.',
@@ -84,7 +89,7 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() {
       _messages.add(
         _ChatMessageItem(
-          sender: 'Aseer Awsaf',
+          sender: 'Salman Farshi Alam',
           role: 'Event Lead',
           time: 'Now',
           message: text,
@@ -98,7 +103,7 @@ class _ChatScreenState extends State<ChatScreen> {
         _scrollController.animateTo(
           _scrollController.position.maxScrollExtent,
           duration: const Duration(milliseconds: 300),
-          curve: Curves.easeOut,
+          curve: Curves.easeOutCubic,
         );
       }
     });
@@ -107,11 +112,15 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryBlack,
+      backgroundColor: Colors.transparent,
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(LucideIcons.arrowLeft, color: AppColors.white),
-          onPressed: () => context.pop(),
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
+        elevation: 0,
+        leading: PressableScale(
+          onTap: () => context.pop(),
+          child: const Icon(LucideIcons.arrowLeft, color: AppColors.white),
         ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -122,17 +131,17 @@ class _ChatScreenState extends State<ChatScreen> {
                 const SizedBox(width: 4),
                 Text(
                   widget.channelName,
-                  style: GoogleFonts.manrope(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 16,
-                    fontWeight: FontWeight.w700,
+                    fontWeight: FontWeight.w800,
                     color: AppColors.white,
                   ),
                 ),
               ],
             ),
             Text(
-              'Event Operations · 47 Members',
-              style: GoogleFonts.manrope(
+              'Event Operations · 47 Members Online',
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
                 color: AppColors.mutedWhite,
@@ -155,7 +164,9 @@ class _ChatScreenState extends State<ChatScreen> {
           child: Container(color: AppColors.darkBorder, height: 1),
         ),
       ),
-      body: Column(
+      body: GradientMeshBackground(
+        child: SafeArea(
+          child: Column(
         children: [
           Expanded(
             child: ListView.builder(
@@ -168,7 +179,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     padding: const EdgeInsets.only(bottom: 24),
                     child: Center(
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                         decoration: BoxDecoration(
                           color: AppColors.charcoal,
                           borderRadius: BorderRadius.circular(16),
@@ -176,9 +187,9 @@ class _ChatScreenState extends State<ChatScreen> {
                         ),
                         child: Text(
                           'Beginning of #${widget.channelName}',
-                          style: GoogleFonts.manrope(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 11,
-                            fontWeight: FontWeight.w500,
+                            fontWeight: FontWeight.w600,
                             color: AppColors.mutedWhite,
                           ),
                         ),
@@ -189,27 +200,35 @@ class _ChatScreenState extends State<ChatScreen> {
 
                 final item = _messages[index - 1];
                 if (item.isDecision) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: _buildDecisionCard(context, item),
+                  return StaggeredEntrance(
+                    index: index,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 20),
+                      child: _buildDecisionCard(context, item),
+                    ),
                   );
                 }
 
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 20),
-                  child: _buildMessageBubble(context, item),
+                return StaggeredEntrance(
+                  index: index,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 20),
+                    child: _buildMessageBubble(context, item),
+                  ),
                 );
               },
             ),
           ),
           _buildMessageInput(context),
         ],
+        ),
       ),
-    );
-  }
+    ),
+  );
+}
 
   Widget _buildMessageBubble(BuildContext context, _ChatMessageItem item) {
-    final isMe = item.sender == 'Aseer Awsaf';
+    final isMe = item.sender == 'Salman Farshi Alam';
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,9 +238,9 @@ class _ChatScreenState extends State<ChatScreen> {
           backgroundColor: isMe ? AppColors.primaryYellow : AppColors.charcoal,
           child: Text(
             item.sender[0],
-            style: GoogleFonts.manrope(
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
-              fontWeight: FontWeight.w700,
+              fontWeight: FontWeight.w800,
               color: isMe ? AppColors.deepBlack : AppColors.white,
             ),
           ),
@@ -235,7 +254,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 children: [
                   Text(
                     item.sender,
-                    style: GoogleFonts.manrope(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       fontWeight: FontWeight.w700,
                       color: AppColors.white,
@@ -245,23 +264,24 @@ class _ChatScreenState extends State<ChatScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppColors.charcoal,
+                      color: AppColors.elevatedSurface,
                       borderRadius: BorderRadius.circular(4),
                       border: Border.all(color: AppColors.darkBorder),
                     ),
                     child: Text(
                       item.role,
-                      style: GoogleFonts.manrope(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: AppColors.mutedWhite,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                        color: isMe ? AppColors.primaryYellow : AppColors.mutedWhite,
+                        letterSpacing: 0.5,
                       ),
                     ),
                   ),
                   const SizedBox(width: 8),
                   Text(
                     item.time,
-                    style: GoogleFonts.manrope(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w500,
                       color: const Color(0xFF6E6E6E),
@@ -279,9 +299,9 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
                 child: Text(
                   item.message,
-                  style: GoogleFonts.manrope(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
-                    height: 1.4,
+                    height: 1.45,
                     fontWeight: FontWeight.w500,
                     color: AppColors.white,
                   ),
@@ -295,77 +315,77 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Widget _buildDecisionCard(BuildContext context, _ChatMessageItem item) {
-    return Container(
-      margin: const EdgeInsets.only(left: 46),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.charcoal,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: AppColors.primaryYellow.withValues(alpha: 0.4),
-          width: 1.2,
-        ),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Padding(
+      padding: const EdgeInsets.only(left: 46),
+      child: AnimatedGlowingBorder(
+        borderRadius: 16,
+        glowColor: AppColors.primaryYellow,
+        borderWidth: 1.4,
+        surfaceColor: const Color(0xFF141414),
+        child: Padding(
+          padding: const EdgeInsets.all(18),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(LucideIcons.fileSignature, color: AppColors.primaryYellow, size: 16),
-              const SizedBox(width: 8),
+              Row(
+                children: [
+                  const PulsingBeacon(dotSize: 4.5, maxAuraSize: 11),
+                  const SizedBox(width: 8),
+                  const Icon(LucideIcons.fileSignature, color: AppColors.primaryYellow, size: 16),
+                  const SizedBox(width: 6),
+                  Text(
+                    'OPERATIONAL DECISION #${item.decisionId ?? "024"}',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primaryYellow,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10),
               Text(
-                'OPERATIONAL DECISION #${item.decisionId ?? "024"}',
-                style: GoogleFonts.manrope(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  color: AppColors.primaryYellow,
-                  letterSpacing: 1.2,
+                item.message,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.white,
+                  height: 1.4,
+                ),
+              ),
+              const SizedBox(height: 14),
+              PressableScale(
+                onTap: () => context.push('/decision/${item.decisionId ?? "024"}'),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  decoration: BoxDecoration(
+                    color: AppColors.primaryYellow.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.primaryYellow.withValues(alpha: 0.4)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text(
+                        'VIEW DECISION LOG',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primaryYellow,
+                          letterSpacing: 0.8,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(LucideIcons.chevronRight, size: 14, color: AppColors.primaryYellow),
+                    ],
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Text(
-            item.message,
-            style: GoogleFonts.manrope(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: AppColors.white,
-            ),
-          ),
-          const SizedBox(height: 14),
-          SizedBox(
-            width: double.infinity,
-            child: InkWell(
-              onTap: () => context.push('/decision/${item.decisionId ?? "024"}'),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 10),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryYellow.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.primaryYellow.withValues(alpha: 0.3)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      'VIEW DECISION LOG',
-                      style: GoogleFonts.manrope(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.primaryYellow,
-                        letterSpacing: 0.8,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    const Icon(LucideIcons.chevronRight, size: 14, color: AppColors.primaryYellow),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -380,10 +400,19 @@ class _ChatScreenState extends State<ChatScreen> {
       child: SafeArea(
         child: Row(
           children: [
-            IconButton(
-              icon: const Icon(LucideIcons.plusCircle, color: AppColors.mutedWhite),
-              onPressed: () {},
+            PressableScale(
+              onTap: () {},
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.charcoal,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppColors.darkBorder),
+                ),
+                child: const Icon(LucideIcons.plusCircle, color: AppColors.mutedWhite, size: 20),
+              ),
             ),
+            const SizedBox(width: 10),
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
@@ -395,13 +424,13 @@ class _ChatScreenState extends State<ChatScreen> {
                 child: TextField(
                   controller: _controller,
                   onSubmitted: (_) => _sendMessage(),
-                  style: GoogleFonts.manrope(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 14,
                     color: AppColors.white,
                   ),
                   decoration: InputDecoration(
                     hintText: 'Message #${widget.channelName}...',
-                    hintStyle: GoogleFonts.manrope(
+                    hintStyle: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       color: AppColors.mutedWhite.withValues(alpha: 0.6),
                     ),
@@ -412,15 +441,21 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ),
             ),
-            const SizedBox(width: 8),
-            GestureDetector(
+            const SizedBox(width: 10),
+            PressableScale(
               onTap: _sendMessage,
               child: Container(
-                width: 40,
-                height: 40,
-                decoration: const BoxDecoration(
-                  color: AppColors.primaryYellow,
+                width: 42,
+                height: 42,
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primaryYellow.withValues(alpha: 0.35),
+                      blurRadius: 10,
+                    ),
+                  ],
                 ),
                 child: const Icon(
                   LucideIcons.send,

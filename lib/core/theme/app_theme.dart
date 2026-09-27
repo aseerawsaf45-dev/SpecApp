@@ -7,7 +7,7 @@ class AppTheme {
     final base = ThemeData.dark();
     
     return base.copyWith(
-      scaffoldBackgroundColor: AppColors.primaryBlack,
+      scaffoldBackgroundColor: const Color(0xFF070709),
       primaryColor: AppColors.primaryYellow,
       colorScheme: const ColorScheme.dark(
         primary: AppColors.primaryYellow,
@@ -25,7 +25,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.elevatedSurface,
-        hintStyle: GoogleFonts.manrope(
+        hintStyle: GoogleFonts.plusJakartaSans(
           color: AppColors.mutedWhite.withValues(alpha: 0.6),
           fontSize: 14,
         ),
@@ -43,16 +43,16 @@ class AppTheme {
           borderSide: const BorderSide(color: AppColors.primaryYellow, width: 1.5),
         ),
       ),
-      textTheme: GoogleFonts.manropeTextTheme(base.textTheme).copyWith(
-        displayLarge: GoogleFonts.manrope(fontSize: 36, fontWeight: FontWeight.w800, color: AppColors.white),
-        displayMedium: GoogleFonts.manrope(fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.white),
-        titleLarge: GoogleFonts.manrope(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.white),
-        titleMedium: GoogleFonts.manrope(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.white),
-        titleSmall: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.white),
-        bodyLarge: GoogleFonts.manrope(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.white),
-        bodyMedium: GoogleFonts.manrope(fontSize: 14, fontWeight: FontWeight.w500, color: AppColors.white),
-        labelLarge: GoogleFonts.manrope(fontSize: 12, fontWeight: FontWeight.w500, color: AppColors.mutedWhite),
-        labelSmall: GoogleFonts.manrope(fontSize: 10, fontWeight: FontWeight.w500, color: AppColors.mutedWhite),
+      textTheme: GoogleFonts.plusJakartaSansTextTheme(base.textTheme).copyWith(
+        displayLarge: GoogleFonts.plusJakartaSans(fontSize: 36, fontWeight: FontWeight.w800, color: AppColors.white, letterSpacing: -1.0),
+        displayMedium: GoogleFonts.plusJakartaSans(fontSize: 28, fontWeight: FontWeight.w700, color: AppColors.white, letterSpacing: -0.6),
+        titleLarge: GoogleFonts.plusJakartaSans(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.white, letterSpacing: -0.4),
+        titleMedium: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.white, letterSpacing: -0.2),
+        titleSmall: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.white),
+        bodyLarge: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w500, color: AppColors.white),
+        bodyMedium: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w400, color: AppColors.white),
+        labelLarge: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.mutedWhite, letterSpacing: 0.5),
+        labelSmall: GoogleFonts.plusJakartaSans(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.mutedWhite, letterSpacing: 0.5),
       ),
       cardTheme: CardThemeData(
         color: AppColors.charcoal,
@@ -63,7 +63,8 @@ class AppTheme {
         ),
       ),
       appBarTheme: const AppBarTheme(
-        backgroundColor: AppColors.primaryBlack,
+        backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         iconTheme: IconThemeData(color: AppColors.white),
       ),
@@ -78,7 +79,7 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primaryYellow,
           foregroundColor: AppColors.deepBlack,
-          textStyle: GoogleFonts.manrope(fontSize: 15, fontWeight: FontWeight.w700),
+          textStyle: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 0.2),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),

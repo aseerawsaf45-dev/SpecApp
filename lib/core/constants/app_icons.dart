@@ -27,4 +27,17 @@ class LucideIcons {
   static const IconData x = Icons.close;
   static const IconData shieldCheck = Icons.verified_user_outlined;
   static const IconData plusCircle = Icons.add_circle_outline;
+  static const IconData share2 = Icons.share_outlined;
+  static const IconData mapPin = Icons.location_on_outlined;
+  static const IconData fileText = Icons.description_outlined;
+  static const IconData info = Icons.info_outline;
+  static const IconData checkCheck = Icons.done_all;
+  static const IconData check = Icons.check;
+  static const IconData crown = Icons.workspace_premium_outlined;
+  static const IconData award = Icons.emoji_events_outlined;
+  static const IconData layers = Icons.layers_outlined;
+  static const IconData fingerprint = Icons.fingerprint;
+  static const IconData messageSquare = Icons.chat_bubble_outline;
+  static const IconData phoneCall = Icons.phone_in_talk_outlined;
+  static const IconData userX = Icons.person_off_outlined;
 }

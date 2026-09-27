@@ -1,9 +1,17 @@
+import '../../../shared/widgets/gradient_mesh_background.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/constants/app_icons.dart';
+import '../../../shared/widgets/animated_counter.dart';
+import '../../../shared/widgets/animated_glowing_border.dart';
 import '../../../shared/widgets/brand_logo.dart';
+import '../../../shared/widgets/command_card.dart';
+import '../../../shared/widgets/pressable_scale.dart';
+import '../../../shared/widgets/pulsing_beacon.dart';
+import '../../../shared/widgets/shimmer_sweep.dart';
+import '../../../shared/widgets/staggered_entrance.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -26,9 +34,10 @@ class _DashboardScreenState extends State<DashboardScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.primaryBlack,
-      body: SafeArea(
-        child: IndexedStack(
+      backgroundColor: Colors.transparent,
+      body: GradientMeshBackground(
+        child: SafeArea(
+          child: IndexedStack(
           index: _currentIndex,
           children: [
             _buildHomeTab(context),
@@ -37,6 +46,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             _buildAlertsTab(context),
             _buildProfileTab(context),
           ],
+          ),
         ),
       ),
       bottomNavigationBar: _buildBottomNav(context),
@@ -57,60 +67,78 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
-                _buildUpcomingEventCard(context),
-                const SizedBox(height: 28),
-                _buildSectionHeader('NEEDS ATTENTION', count: 3),
-                const SizedBox(height: 14),
-                _buildAttentionCard(
-                  context,
-                  title: 'Decision Required',
-                  subtitle: 'Budget allocation for Stage Lighting v2',
-                  timeAgo: '12m ago',
-                  priority: 'HIGH',
-                  priorityColor: const Color(0xFFFF5252),
-                  onTap: () => context.push('/decision/024'),
-                ),
-                const SizedBox(height: 10),
-                _buildAttentionCard(
-                  context,
-                  title: 'Venue Change Pending',
-                  subtitle: 'Registration Desk relocated to Auditorium Entrance',
-                  timeAgo: '48m ago',
-                  priority: 'URGENT',
-                  priorityColor: AppColors.primaryYellow,
-                  onTap: () => context.push('/decision/024'),
-                ),
-                const SizedBox(height: 10),
-                _buildAttentionCard(
-                  context,
-                  title: 'Unread Announcements',
-                  subtitle: '3 new updates posted in #announcements',
-                  timeAgo: '1h ago',
-                  priority: 'INFO',
-                  priorityColor: const Color(0xFF64B5F6),
-                  onTap: () => context.push('/chat/announcements'),
+                StaggeredEntrance(
+                  index: 0,
+                  child: _buildUpcomingEventCard(context),
                 ),
                 const SizedBox(height: 28),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildSectionHeader('RECENT ACTIVITY'),
-                    GestureDetector(
-                      onTap: () => context.push('/what_changed'),
-                      child: Text(
-                        'WHAT CHANGED?',
-                        style: GoogleFonts.manrope(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primaryYellow,
-                          letterSpacing: 1.0,
-                        ),
+                StaggeredEntrance(
+                  index: 1,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSectionHeader('NEEDS ATTENTION', count: 3),
+                      const SizedBox(height: 14),
+                      _buildAttentionCard(
+                        context,
+                        title: 'Decision Required',
+                        subtitle: 'Budget allocation for Stage Lighting v2',
+                        timeAgo: '12m ago',
+                        priority: 'HIGH',
+                        priorityColor: const Color(0xFFFF5252),
+                        onTap: () => context.push('/decision/024'),
                       ),
-                    ),
-                  ],
+                      const SizedBox(height: 10),
+                      _buildAttentionCard(
+                        context,
+                        title: 'Venue Change Pending',
+                        subtitle: 'Registration Desk relocated to Auditorium Entrance',
+                        timeAgo: '48m ago',
+                        priority: 'URGENT',
+                        priorityColor: AppColors.primaryYellow,
+                        onTap: () => context.push('/decision/024'),
+                      ),
+                      const SizedBox(height: 10),
+                      _buildAttentionCard(
+                        context,
+                        title: 'Unread Announcements',
+                        subtitle: '3 new updates posted in #announcements',
+                        timeAgo: '1h ago',
+                        priority: 'INFO',
+                        priorityColor: const Color(0xFF64B5F6),
+                        onTap: () => context.push('/chat/announcements'),
+                      ),
+                    ],
+                  ),
                 ),
-                const SizedBox(height: 16),
-                _buildActivityTimeline(context),
+                const SizedBox(height: 28),
+                StaggeredEntrance(
+                  index: 2,
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          _buildSectionHeader('RECENT ACTIVITY'),
+                          PressableScale(
+                            onTap: () => context.push('/what_changed'),
+                            child: Text(
+                              'WHAT CHANGED?',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                                color: AppColors.primaryYellow,
+                                letterSpacing: 1.0,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      _buildActivityTimeline(context),
+                    ],
+                  ),
+                ),
                 const SizedBox(height: 28),
               ],
             ),
@@ -134,91 +162,123 @@ class _DashboardScreenState extends State<DashboardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'MANAGED EVENTS',
-                          style: GoogleFonts.manrope(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppColors.primaryYellow,
-                            letterSpacing: 1.5,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          '3 Active Deployments',
-                          style: GoogleFonts.manrope(
-                            fontSize: 22,
-                            fontWeight: FontWeight.w800,
-                            color: AppColors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                    ElevatedButton.icon(
-                      onPressed: () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: AppColors.charcoal,
-                            content: Text(
-                              'Event deployment configuration console ready',
-                              style: GoogleFonts.manrope(color: AppColors.white),
+                StaggeredEntrance(
+                  index: 0,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'MANAGED EVENTS',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.primaryYellow,
+                              letterSpacing: 1.5,
                             ),
                           ),
-                        );
-                      },
-                      icon: const Icon(LucideIcons.plus, size: 16, color: AppColors.deepBlack),
-                      label: Text(
-                        'NEW EVENT',
-                        style: GoogleFonts.manrope(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: 1.0,
+                          const SizedBox(height: 4),
+                          Text(
+                            '3 Active Deployments',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 22,
+                              fontWeight: FontWeight.w800,
+                              color: AppColors.white,
+                            ),
+                          ),
+                        ],
+                      ),
+                      PressableScale(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              backgroundColor: AppColors.charcoal,
+                              content: Text(
+                                'Event deployment configuration console ready',
+                                style: GoogleFonts.plusJakartaSans(color: AppColors.white),
+                              ),
+                            ),
+                          );
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          decoration: BoxDecoration(
+                            gradient: AppColors.primaryGradient,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primaryYellow.withValues(alpha: 0.3),
+                                blurRadius: 10,
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(LucideIcons.plus, size: 15, color: AppColors.deepBlack),
+                              const SizedBox(width: 6),
+                              Text(
+                                'NEW EVENT',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w800,
+                                  color: AppColors.deepBlack,
+                                  letterSpacing: 0.8,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 20),
-                _buildEventDeckCard(
-                  context,
-                  title: 'CASESpecs 4.0',
-                  phase: 'PREPARATION PHASE',
-                  daysLeft: '23 DAYS LEFT',
-                  progress: 0.78,
-                  membersCount: 47,
-                  lead: 'Aseer Awsaf',
-                  isFeatured: true,
-                  onTap: () => context.push('/event'),
+                StaggeredEntrance(
+                  index: 1,
+                  child: _buildEventDeckCard(
+                    context,
+                    title: 'CASESpecs 4.0',
+                    phase: 'PREPARATION PHASE',
+                    daysLeft: '23 DAYS LEFT',
+                    progress: 0.78,
+                    membersCount: 47,
+                    lead: 'Salman Farshi Alam',
+                    isFeatured: true,
+                    onTap: () => context.push('/event'),
+                  ),
                 ),
                 const SizedBox(height: 14),
-                _buildEventDeckCard(
-                  context,
-                  title: 'MechTech Arena 2026',
-                  phase: 'LOGISTICS PLANNING',
-                  daysLeft: '48 DAYS LEFT',
-                  progress: 0.42,
-                  membersCount: 31,
-                  lead: 'Tanvir Hossain',
-                  isFeatured: false,
-                  onTap: () => context.push('/event'),
+                StaggeredEntrance(
+                  index: 2,
+                  child: _buildEventDeckCard(
+                    context,
+                    title: 'MechTech Arena 2026',
+                    phase: 'LOGISTICS PLANNING',
+                    daysLeft: '48 DAYS LEFT',
+                    progress: 0.42,
+                    membersCount: 31,
+                    lead: 'Tanvir Hossain',
+                    isFeatured: false,
+                    onTap: () => context.push('/event'),
+                  ),
                 ),
                 const SizedBox(height: 14),
-                _buildEventDeckCard(
-                  context,
-                  title: 'Roboverse Tech Summit',
-                  phase: 'EARLY DRAFT',
-                  daysLeft: '76 DAYS LEFT',
-                  progress: 0.18,
-                  membersCount: 19,
-                  lead: 'Sadia Rahman',
-                  isFeatured: false,
-                  onTap: () => context.push('/event'),
+                StaggeredEntrance(
+                  index: 3,
+                  child: _buildEventDeckCard(
+                    context,
+                    title: 'Roboverse Tech Summit',
+                    phase: 'EARLY DRAFT',
+                    daysLeft: '76 DAYS LEFT',
+                    progress: 0.18,
+                    membersCount: 19,
+                    lead: 'Sadia Rahman',
+                    isFeatured: false,
+                    onTap: () => context.push('/event'),
+                  ),
                 ),
                 const SizedBox(height: 28),
               ],
@@ -274,6 +334,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
         icon: LucideIcons.fileSpreadsheet,
         route: '/what_changed',
       ),
+      _SearchResult(
+        title: 'Executive Corps & Team Roster',
+        category: 'ORGANIZATION',
+        code: '4 TIERS',
+        subtitle: 'Panel, Senior, Junior & Associate Executives with Dept IDs',
+        icon: LucideIcons.users,
+        route: '/team_roster',
+      ),
     ];
 
     final filtered = _searchQuery.isEmpty
@@ -305,13 +373,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                   child: TextField(
                     controller: _searchController,
                     onChanged: (val) => setState(() => _searchQuery = val),
-                    style: GoogleFonts.manrope(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       color: AppColors.white,
                     ),
                     decoration: InputDecoration(
                       hintText: 'Search decisions, channels, documents...',
-                      hintStyle: GoogleFonts.manrope(
+                      hintStyle: GoogleFonts.plusJakartaSans(
                         fontSize: 14,
                         color: AppColors.mutedWhite.withValues(alpha: 0.6),
                       ),
@@ -371,7 +439,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                               children: [
                                 Text(
                                   item.title,
-                                  style: GoogleFonts.manrope(
+                                  style: GoogleFonts.plusJakartaSans(
                                     fontSize: 14,
                                     fontWeight: FontWeight.w700,
                                     color: AppColors.white,
@@ -386,7 +454,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                   child: Text(
                                     item.category,
-                                    style: GoogleFonts.manrope(
+                                    style: GoogleFonts.plusJakartaSans(
                                       fontSize: 9,
                                       fontWeight: FontWeight.w800,
                                       color: AppColors.primaryYellow,
@@ -399,7 +467,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             const SizedBox(height: 4),
                             Text(
                               item.subtitle,
-                              style: GoogleFonts.manrope(
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
                                 color: AppColors.mutedWhite,
                               ),
@@ -507,8 +575,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            'AA',
-                            style: GoogleFonts.manrope(
+                            'SF',
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 20,
                               fontWeight: FontWeight.w800,
                               color: AppColors.deepBlack,
@@ -522,8 +590,8 @@ class _DashboardScreenState extends State<DashboardScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Aseer Awsaf',
-                              style: GoogleFonts.manrope(
+                              'Salman Farshi Alam',
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 18,
                                 fontWeight: FontWeight.w800,
                                 color: AppColors.white,
@@ -532,7 +600,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                             const SizedBox(height: 4),
                             Text(
                               'Head of Operations · Event Lead',
-                              style: GoogleFonts.manrope(
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
                                 color: AppColors.primaryYellow,
@@ -550,7 +618,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                   ),
                                   child: Text(
                                     'TIER 1 ADMIN',
-                                    style: GoogleFonts.manrope(
+                                    style: GoogleFonts.plusJakartaSans(
                                       fontSize: 9,
                                       fontWeight: FontWeight.w700,
                                       color: AppColors.mutedWhite,
@@ -561,7 +629,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                                 const SizedBox(width: 8),
                                 Text(
                                   'ID: #OPS-9921',
-                                  style: GoogleFonts.manrope(
+                                  style: GoogleFonts.plusJakartaSans(
                                     fontSize: 11,
                                     color: const Color(0xFF6E6E6E),
                                   ),
@@ -612,6 +680,13 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 const SizedBox(height: 10),
                 _buildSettingsOption(
+                  icon: LucideIcons.users,
+                  title: 'Executive Corps & Roster',
+                  subtitle: '4 tiers · 43 officers · Department ID verification',
+                  onTap: () => context.push('/team_roster'),
+                ),
+                const SizedBox(height: 10),
+                _buildSettingsOption(
                   icon: LucideIcons.shieldCheck,
                   title: 'Security & Access Keys',
                   subtitle: 'Manage coordinator permissions and tokens',
@@ -631,7 +706,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   // ==========================================
   Widget _buildAppBar(BuildContext context, {required String title, required bool showLiveStatus}) {
     return SliverAppBar(
-      backgroundColor: AppColors.primaryBlack,
+        backgroundColor: Colors.transparent,
       floating: true,
       pinned: false,
       elevation: 0,
@@ -642,7 +717,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(width: 12),
           Text(
             title,
-            style: GoogleFonts.manrope(
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: AppColors.white,
@@ -652,7 +727,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const Spacer(),
           if (showLiveStatus) ...[
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
               decoration: BoxDecoration(
                 color: const Color(0xFF142400),
                 borderRadius: BorderRadius.circular(6),
@@ -660,18 +735,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               child: Row(
                 children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primaryYellow,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 5),
+                  const PulsingBeacon(dotSize: 5.5, maxAuraSize: 13),
+                  const SizedBox(width: 6),
                   Text(
                     'SYS:ONLINE',
-                    style: GoogleFonts.manrope(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
                       fontWeight: FontWeight.w700,
                       color: AppColors.primaryYellow,
@@ -683,14 +751,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             const SizedBox(width: 12),
           ],
-          GestureDetector(
+          PressableScale(
             onTap: () => setState(() => _currentIndex = 4),
             child: CircleAvatar(
               radius: 17,
               backgroundColor: AppColors.charcoal,
               child: Text(
                 'AA',
-                style: GoogleFonts.manrope(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
                   color: AppColors.white,
@@ -720,7 +788,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(width: 12),
           Text(
             title,
-            style: GoogleFonts.manrope(
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 18,
               fontWeight: FontWeight.w800,
               color: AppColors.white,
@@ -732,126 +800,197 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildUpcomingEventCard(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0F0F0F), Color(0xFF191919), Color(0xFF26200A)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
+    return AnimatedGlowingBorder(
+      borderRadius: 20,
+      glowColor: AppColors.primaryYellow,
+      borderWidth: 1.5,
+      surfaceColor: const Color(0xFF101010),
+      child: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF0C0C0C), Color(0xFF161616), Color(0xFF241D06)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
         ),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.darkBorder, width: 1.2),
-      ),
-      padding: const EdgeInsets.all(22),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryYellow.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(6),
-                  border: Border.all(color: AppColors.primaryYellow.withValues(alpha: 0.35)),
-                ),
-                child: Text(
-                  'UPCOMING EVENT',
-                  style: GoogleFonts.manrope(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.primaryYellow,
-                    letterSpacing: 1.5,
-                  ),
-                ),
-              ),
-              Text(
-                '23 DAYS LEFT',
-                style: GoogleFonts.manrope(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
-                  color: AppColors.primaryYellow,
-                  letterSpacing: 0.5,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'CASESpecs 4.0',
-            style: GoogleFonts.manrope(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              color: AppColors.white,
-              letterSpacing: -0.5,
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(
-            'Spectrum · Annual National Business Case Competition',
-            style: GoogleFonts.manrope(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-              color: AppColors.mutedWhite,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => context.push('/event'),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryYellow,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Center(
-                      child: Text(
-                        'OPEN EVENT HUB',
-                        style: GoogleFonts.manrope(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.deepBlack,
-                          letterSpacing: 0.8,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              GestureDetector(
-                onTap: () => context.push('/event_day'),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        padding: const EdgeInsets.all(22),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.charcoal,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: AppColors.primaryYellow.withValues(alpha: 0.4)),
+                    color: AppColors.primaryYellow.withValues(alpha: 0.12),
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.primaryYellow.withValues(alpha: 0.35)),
                   ),
-                  child: Row(
+                  child: const Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Icon(LucideIcons.zap, size: 16, color: AppColors.primaryYellow),
-                      const SizedBox(width: 6),
+                      PulsingBeacon(dotSize: 4.5, maxAuraSize: 11),
+                      SizedBox(width: 6),
                       Text(
-                        'LIVE DAY',
-                        style: GoogleFonts.manrope(
-                          fontSize: 12,
+                        'UPCOMING EVENT',
+                        style: TextStyle(
+                          fontFamily: 'Manrope',
+                          fontSize: 10,
                           fontWeight: FontWeight.w700,
                           color: AppColors.primaryYellow,
+                          letterSpacing: 1.5,
                         ),
                       ),
                     ],
                   ),
                 ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.elevatedSurface,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(color: AppColors.darkBorder),
+                  ),
+                  child: AnimatedCounter(
+                    targetValue: 23,
+                    suffix: ' DAYS LEFT',
+                    style: GoogleFonts.jetBrainsMono(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: AppColors.primaryYellow,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            ShimmerSweep(
+              child: Text(
+                'CASESpecs 4.0',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  color: AppColors.white,
+                  letterSpacing: -0.5,
+                ),
               ),
-            ],
-          ),
-        ],
+            ),
+            const SizedBox(height: 6),
+            Text(
+              'Spectrum · Annual National Business Case Competition',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.mutedWhite,
+              ),
+            ),
+            const SizedBox(height: 16),
+            // Preparation progress bar with spring animation
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'PREPARATION PROGRESS',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.mutedWhite,
+                    letterSpacing: 1.0,
+                  ),
+                ),
+                AnimatedCounter(
+                  targetValue: 68,
+                  suffix: '%',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                    color: AppColors.primaryYellow,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: TweenAnimationBuilder<double>(
+                tween: Tween<double>(begin: 0.0, end: 0.68),
+                duration: const Duration(milliseconds: 1400),
+                curve: Curves.easeOutCubic,
+                builder: (context, value, _) {
+                  return LinearProgressIndicator(
+                    value: value,
+                    backgroundColor: AppColors.elevatedSurface,
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppColors.primaryYellow),
+                    minHeight: 6,
+                  );
+                },
+              ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: PressableScale(
+                    onTap: () => context.push('/event'),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(vertical: 13),
+                      decoration: BoxDecoration(
+                        gradient: AppColors.primaryGradient,
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryYellow.withValues(alpha: 0.35),
+                            blurRadius: 14,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Center(
+                        child: Text(
+                          'OPEN EVENT HUB',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.deepBlack,
+                            letterSpacing: 0.8,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+                PressableScale(
+                  onTap: () => context.push('/event_day'),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 13),
+                    decoration: BoxDecoration(
+                      color: AppColors.charcoal,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.primaryYellow.withValues(alpha: 0.45)),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(LucideIcons.zap, size: 16, color: AppColors.primaryYellow),
+                        const SizedBox(width: 6),
+                        Text(
+                          'LIVE DAY',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primaryYellow,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -867,97 +1006,104 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required bool isFeatured,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return CommandCard(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.all(20),
-        decoration: BoxDecoration(
-          color: AppColors.charcoal,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: isFeatured ? AppColors.primaryYellow.withValues(alpha: 0.4) : AppColors.darkBorder,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppColors.elevatedSurface,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(color: AppColors.darkBorder),
+      padding: const EdgeInsets.all(20),
+      borderRadius: 16,
+      borderColor: isFeatured ? AppColors.primaryYellow.withValues(alpha: 0.4) : AppColors.darkBorder,
+      borderGradient: isFeatured ? AppColors.goldBorderGradient : null,
+      hasPriorityGlow: isFeatured,
+      glowColor: AppColors.primaryYellow,
+      glowBlur: 18,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppColors.elevatedSurface,
+                  borderRadius: BorderRadius.circular(6),
+                  border: Border.all(
+                    color: isFeatured ? AppColors.primaryYellow.withValues(alpha: 0.3) : AppColors.darkBorder,
                   ),
-                  child: Text(
-                    phase,
-                    style: GoogleFonts.manrope(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      color: isFeatured ? AppColors.primaryYellow : AppColors.mutedWhite,
-                      letterSpacing: 1.0,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (isFeatured) ...[
+                      const PulsingBeacon(dotSize: 4, maxAuraSize: 9),
+                      const SizedBox(width: 5),
+                    ],
+                    Text(
+                      phase,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: isFeatured ? AppColors.primaryYellow : AppColors.mutedWhite,
+                        letterSpacing: 1.0,
+                      ),
                     ),
-                  ),
+                  ],
                 ),
-                Text(
-                  daysLeft,
-                  style: GoogleFonts.manrope(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: isFeatured ? AppColors.primaryYellow : AppColors.mutedWhite,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 14),
-            Text(
-              title,
-              style: GoogleFonts.manrope(
-                fontSize: 20,
-                fontWeight: FontWeight.w800,
-                color: AppColors.white,
               ),
-            ),
-            const SizedBox(height: 12),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: progress,
-                backgroundColor: AppColors.elevatedSurface,
-                valueColor: AlwaysStoppedAnimation<Color>(
-                  isFeatured ? AppColors.primaryYellow : const Color(0xFF888888),
+              Text(
+                daysLeft,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                  color: isFeatured ? AppColors.primaryYellow : AppColors.mutedWhite,
                 ),
-                minHeight: 6,
               ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            title,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 20,
+              fontWeight: FontWeight.w800,
+              color: AppColors.white,
             ),
-            const SizedBox(height: 14),
-            Row(
-              children: [
-                Text(
-                  'Lead: $lead',
-                  style: GoogleFonts.manrope(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.mutedWhite,
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  '$membersCount Members',
-                  style: GoogleFonts.manrope(
-                    fontSize: 12,
-                    color: const Color(0xFF7A7A7A),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                const Icon(LucideIcons.chevronRight, size: 16, color: AppColors.mutedWhite),
-              ],
+          ),
+          const SizedBox(height: 12),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: progress,
+              backgroundColor: AppColors.elevatedSurface,
+              valueColor: AlwaysStoppedAnimation<Color>(
+                isFeatured ? AppColors.primaryYellow : const Color(0xFF888888),
+              ),
+              minHeight: 6,
             ),
-          ],
-        ),
+          ),
+          const SizedBox(height: 14),
+          Row(
+            children: [
+              Text(
+                'Lead: $lead',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.mutedWhite,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                '$membersCount Members',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12,
+                  color: const Color(0xFF7A7A7A),
+                ),
+              ),
+              const SizedBox(width: 8),
+              const Icon(LucideIcons.chevronRight, size: 16, color: AppColors.mutedWhite),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -971,84 +1117,91 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required Color priorityColor,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    final bool isHighPriority = priority == 'HIGH' || priority == 'URGENT';
+    return CommandCard(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.charcoal,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.darkBorder),
-        ),
-        child: Row(
-          children: [
-            Container(
-              width: 3,
-              height: 42,
-              decoration: BoxDecoration(
-                color: priorityColor,
-                borderRadius: BorderRadius.circular(2),
-              ),
+      padding: const EdgeInsets.all(16),
+      borderRadius: 14,
+      borderColor: isHighPriority ? priorityColor.withValues(alpha: 0.3) : AppColors.darkBorder,
+      hasPriorityGlow: isHighPriority,
+      glowColor: priorityColor,
+      glowBlur: 14,
+      child: Row(
+        children: [
+          Container(
+            width: 3.5,
+            height: 42,
+            decoration: BoxDecoration(
+              color: priorityColor,
+              borderRadius: BorderRadius.circular(2),
+              boxShadow: [
+                BoxShadow(
+                  color: priorityColor.withValues(alpha: 0.6),
+                  blurRadius: 6,
+                ),
+              ],
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: priorityColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          priority,
-                          style: GoogleFonts.manrope(
-                            fontSize: 9,
-                            fontWeight: FontWeight.w800,
-                            color: priorityColor,
-                            letterSpacing: 0.8,
-                          ),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: priorityColor.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: priorityColor.withValues(alpha: 0.3)),
+                      ),
+                      child: Text(
+                        priority,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w800,
+                          color: priorityColor,
+                          letterSpacing: 0.8,
                         ),
                       ),
-                      const SizedBox(width: 8),
-                      Text(
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
                         title,
-                        style: GoogleFonts.manrope(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w700,
                           color: AppColors.white,
                         ),
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const Spacer(),
-                      Text(
-                        timeAgo,
-                        style: GoogleFonts.manrope(
-                          fontSize: 11,
-                          color: const Color(0xFF6E6E6E),
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.manrope(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.mutedWhite,
                     ),
+                    Text(
+                      timeAgo,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        color: const Color(0xFF6E6E6E),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w500,
+                    color: AppColors.mutedWhite,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const SizedBox(width: 8),
-            const Icon(LucideIcons.chevronRight, size: 16, color: AppColors.mutedWhite),
-          ],
-        ),
+          ),
+          const SizedBox(width: 8),
+          const Icon(LucideIcons.chevronRight, size: 16, color: AppColors.mutedWhite),
+        ],
       ),
     );
   }
@@ -1088,7 +1241,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ),
                 child: Text(
                   badge,
-                  style: GoogleFonts.manrope(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 9,
                     fontWeight: FontWeight.w800,
                     color: isUrgent ? AppColors.primaryYellow : AppColors.mutedWhite,
@@ -1098,7 +1251,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               ),
               Text(
                 time,
-                style: GoogleFonts.manrope(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 11,
                   color: const Color(0xFF6E6E6E),
                 ),
@@ -1108,7 +1261,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 12),
           Text(
             title,
-            style: GoogleFonts.manrope(
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 16,
               fontWeight: FontWeight.w700,
               color: AppColors.white,
@@ -1117,7 +1270,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
           const SizedBox(height: 6),
           Text(
             description,
-            style: GoogleFonts.manrope(
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               fontWeight: FontWeight.w500,
               color: AppColors.mutedWhite,
@@ -1130,7 +1283,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               children: [
                 Text(
                   actionLabel,
-                  style: GoogleFonts.manrope(
+                  style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
                     color: AppColors.primaryYellow,
@@ -1152,7 +1305,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         Text(
           title,
-          style: GoogleFonts.manrope(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 11,
             fontWeight: FontWeight.w700,
             color: const Color(0xFF6E6E6E),
@@ -1169,7 +1322,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             ),
             child: Text(
               '$count',
-              style: GoogleFonts.manrope(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
                 color: AppColors.deepBlack,
@@ -1185,17 +1338,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: GoogleFonts.manrope(
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
-            color: AppColors.mutedWhite,
-          ),
+        Row(
+          children: [
+            PulsingBeacon(
+              color: isOk ? AppColors.statusGreen : AppColors.statusRed,
+              dotSize: 5,
+              maxAuraSize: 12,
+            ),
+            const SizedBox(width: 10),
+            Text(
+              label,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w500,
+                color: AppColors.mutedWhite,
+              ),
+            ),
+          ],
         ),
         Text(
           value,
-          style: GoogleFonts.manrope(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 12,
             fontWeight: FontWeight.w700,
             color: isOk ? AppColors.primaryYellow : Colors.redAccent,
@@ -1211,53 +1374,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
     required String subtitle,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return CommandCard(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: AppColors.charcoal,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: AppColors.darkBorder),
-        ),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: AppColors.elevatedSurface,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Icon(icon, size: 18, color: AppColors.primaryYellow),
+      padding: const EdgeInsets.all(16),
+      borderRadius: 14,
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.elevatedSurface,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: AppColors.darkBorder),
             ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: GoogleFonts.manrope(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.white,
-                    ),
+            child: Icon(icon, size: 18, color: AppColors.primaryYellow),
+          ),
+          const SizedBox(width: 14),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.white,
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    subtitle,
-                    style: GoogleFonts.manrope(
-                      fontSize: 12,
-                      color: AppColors.mutedWhite,
-                    ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  subtitle,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    color: AppColors.mutedWhite,
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
-            const Icon(LucideIcons.chevronRight, size: 16, color: AppColors.mutedWhite),
-          ],
-        ),
+          ),
+          const Icon(LucideIcons.chevronRight, size: 16, color: AppColors.mutedWhite),
+        ],
       ),
     );
   }
@@ -1307,7 +1464,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             width: 66,
             child: Text(
               time,
-              style: GoogleFonts.manrope(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 11,
                 fontWeight: isHighlight ? FontWeight.w700 : FontWeight.w500,
                 color: isHighlight ? AppColors.primaryYellow : const Color(0xFF6E6E6E),
@@ -1360,7 +1517,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
                     Expanded(
                       child: Text(
                         description,
-                        style: GoogleFonts.manrope(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           fontWeight: isHighlight ? FontWeight.w600 : FontWeight.w500,
                           color: isHighlight ? AppColors.white : AppColors.mutedWhite,
@@ -1379,51 +1536,125 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildBottomNav(BuildContext context) {
     return Container(
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: AppColors.deepBlack,
-        border: Border(top: BorderSide(color: AppColors.darkBorder, width: 1)),
+        border: const Border(top: BorderSide(color: AppColors.darkBorder, width: 1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.6),
+            blurRadius: 16,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
       child: SafeArea(
-        child: SizedBox(
-          height: 60,
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _buildNavItem(0, LucideIcons.home, 'Home'),
-              _buildNavItem(1, LucideIcons.calendar, 'Events'),
-              _buildNavItem(2, LucideIcons.search, 'Search'),
-              _buildNavItem(3, LucideIcons.bell, 'Alerts'),
-              _buildNavItem(4, LucideIcons.user, 'Profile'),
-            ],
+        child: Container(
+          height: 68,
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              final double itemWidth = constraints.maxWidth / 5;
+              return Stack(
+                children: [
+                  // Animated Gliding Pill
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeOutCubic,
+                    left: _currentIndex * itemWidth + 4,
+                    top: 2,
+                    width: itemWidth - 8,
+                    height: 52,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryYellow.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(14),
+                        border: Border.all(
+                          color: AppColors.primaryYellow.withValues(alpha: 0.35),
+                          width: 1.2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primaryYellow.withValues(alpha: 0.16),
+                            blurRadius: 12,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Bottom mini indicator beam under active tab
+                  AnimatedPositioned(
+                    duration: const Duration(milliseconds: 280),
+                    curve: Curves.easeOutCubic,
+                    left: _currentIndex * itemWidth + (itemWidth / 2) - 8,
+                    bottom: 0,
+                    width: 16,
+                    height: 2.5,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryYellow,
+                        borderRadius: BorderRadius.circular(2),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: AppColors.primaryYellow,
+                            blurRadius: 6,
+                            spreadRadius: 1,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // 5 Nav Items
+                  Row(
+                    children: [
+                      _buildNavItem(0, LucideIcons.home, 'Home', itemWidth),
+                      _buildNavItem(1, LucideIcons.calendar, 'Events', itemWidth),
+                      _buildNavItem(2, LucideIcons.search, 'Search', itemWidth),
+                      _buildNavItem(3, LucideIcons.bell, 'Alerts', itemWidth),
+                      _buildNavItem(4, LucideIcons.user, 'Profile', itemWidth),
+                    ],
+                  ),
+                ],
+              );
+            },
           ),
         ),
       ),
     );
   }
 
-  Widget _buildNavItem(int index, IconData icon, String label) {
+  Widget _buildNavItem(int index, IconData icon, String label, double width) {
     final isActive = _currentIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _currentIndex = index),
-      behavior: HitTestBehavior.opaque,
-      child: SizedBox(
-        width: 64,
+    return SizedBox(
+      width: width,
+      height: 54,
+      child: PressableScale(
+        onTap: () => setState(() => _currentIndex = index),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 20,
-              color: isActive ? AppColors.primaryYellow : AppColors.mutedWhite,
-            ),
-            const SizedBox(height: 3),
-            Text(
-              label,
-              style: GoogleFonts.manrope(
-                fontSize: 10,
-                fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
+            AnimatedScale(
+              scale: isActive ? 1.15 : 1.0,
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutBack,
+              child: Icon(
+                icon,
+                size: 20,
                 color: isActive ? AppColors.primaryYellow : AppColors.mutedWhite,
               ),
+            ),
+            const SizedBox(height: 3),
+            AnimatedDefaultTextStyle(
+              duration: const Duration(milliseconds: 200),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 10,
+                fontWeight: isActive ? FontWeight.w800 : FontWeight.w500,
+                color: isActive ? AppColors.primaryYellow : AppColors.mutedWhite,
+                letterSpacing: 0.2,
+              ),
+              child: Text(label),
             ),
           ],
         ),

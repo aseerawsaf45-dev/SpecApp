@@ -1,8 +1,10 @@
+import '../../../shared/widgets/gradient_mesh_background.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../shared/widgets/brand_logo.dart';
+import '../../../shared/widgets/pulsing_beacon.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -53,8 +55,9 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.deepBlack,
-      body: AnimatedBuilder(
+      backgroundColor: Colors.transparent,
+      body: GradientMeshBackground(
+        child: AnimatedBuilder(
         animation: _controller,
         builder: (context, _) {
           return Stack(
@@ -97,7 +100,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         // App name
                         Text(
                           'AppSpecs',
-                          style: GoogleFonts.manrope(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 36,
                             fontWeight: FontWeight.w800,
                             color: AppColors.white,
@@ -109,7 +112,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                         Text(
                           'One Event. One Team.\nOne Source of Truth.',
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.manrope(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w500,
                             color: AppColors.mutedWhite,
@@ -135,18 +138,11 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Container(
-                            width: 6,
-                            height: 6,
-                            decoration: const BoxDecoration(
-                              color: AppColors.primaryYellow,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                          const SizedBox(width: 6),
+                          const PulsingBeacon(dotSize: 6, maxAuraSize: 14),
+                          const SizedBox(width: 8),
                           Text(
                             'v1.0.0  ·  Enterprise Build',
-                            style: GoogleFonts.manrope(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 11,
                               fontWeight: FontWeight.w500,
                               color: const Color(0xFF52525B),
@@ -162,6 +158,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
             ],
           );
         },
+        ),
       ),
     );
   }

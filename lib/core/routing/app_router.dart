@@ -8,6 +8,36 @@ import '../../features/event_day/presentation/event_day_screen.dart';
 import '../../features/events/presentation/event_screen.dart';
 import '../../features/messages/presentation/chat_screen.dart';
 import '../../features/decisions/presentation/decision_detail_screen.dart';
+import '../../features/roster/presentation/team_roster_screen.dart';
+
+CustomTransitionPage<void> _buildPremiumPage({
+  required GoRouterState state,
+  required Widget child,
+}) {
+  return CustomTransitionPage<void>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 340),
+    reverseTransitionDuration: const Duration(milliseconds: 260),
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      final curvedAnimation = CurvedAnimation(
+        parent: animation,
+        curve: Curves.easeOutCubic,
+        reverseCurve: Curves.easeInCubic,
+      );
+      return FadeTransition(
+        opacity: Tween<double>(begin: 0.0, end: 1.0).animate(curvedAnimation),
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0.04, 0.0),
+            end: Offset.zero,
+          ).animate(curvedAnimation),
+          child: child,
+        ),
+      );
+    },
+  );
+}
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -15,39 +45,73 @@ final routerProvider = Provider<GoRouter>((ref) {
     routes: [
       GoRoute(
         path: '/',
-        builder: (context, state) => const SplashScreen(),
+        pageBuilder: (context, state) => _buildPremiumPage(
+          state: state,
+          child: const SplashScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/splash',
+        pageBuilder: (context, state) => _buildPremiumPage(
+          state: state,
+          child: const SplashScreen(),
+        ),
       ),
       GoRoute(
         path: '/dashboard',
-        builder: (context, state) => const DashboardScreen(),
+        pageBuilder: (context, state) => _buildPremiumPage(
+          state: state,
+          child: const DashboardScreen(),
+        ),
       ),
       GoRoute(
         path: '/what_changed',
-        builder: (context, state) => const WhatChangedScreen(),
+        pageBuilder: (context, state) => _buildPremiumPage(
+          state: state,
+          child: const WhatChangedScreen(),
+        ),
       ),
       GoRoute(
         path: '/event_day',
-        builder: (context, state) => const EventDayScreen(),
+        pageBuilder: (context, state) => _buildPremiumPage(
+          state: state,
+          child: const EventDayScreen(),
+        ),
       ),
       GoRoute(
         path: '/event',
-        builder: (context, state) => const EventScreen(),
+        pageBuilder: (context, state) => _buildPremiumPage(
+          state: state,
+          child: const EventScreen(),
+        ),
       ),
       GoRoute(
         path: '/chat/:channelName',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final channelName = state.pathParameters['channelName']!;
-          return ChatScreen(channelName: channelName);
+          return _buildPremiumPage(
+            state: state,
+            child: ChatScreen(channelName: channelName),
+          );
         },
       ),
       GoRoute(
         path: '/decision/:decisionId',
-        builder: (context, state) {
+        pageBuilder: (context, state) {
           final decisionId = state.pathParameters['decisionId']!;
-          return DecisionDetailScreen(decisionId: decisionId);
+          return _buildPremiumPage(
+            state: state,
+            child: DecisionDetailScreen(decisionId: decisionId),
+          );
         },
       ),
-      // Additional routes will be added here
+      GoRoute(
+        path: '/team_roster',
+        pageBuilder: (context, state) => _buildPremiumPage(
+          state: state,
+          child: const TeamRosterScreen(),
+        ),
+      ),
     ],
   );
 });

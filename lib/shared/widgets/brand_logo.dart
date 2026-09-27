@@ -3,16 +3,44 @@ import '../../core/constants/app_colors.dart';
 
 class BrandLogo extends StatelessWidget {
   final double size;
+  final bool showGlow;
 
-  const BrandLogo({super.key, this.size = 40});
+  const BrandLogo({
+    super.key,
+    this.size = 40,
+    this.showGlow = true,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
+    return Container(
       width: size,
       height: size,
-      child: CustomPaint(
-        painter: _BrandMarkPainter(),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        boxShadow: showGlow
+            ? [
+                BoxShadow(
+                  color: AppColors.primaryYellow.withValues(alpha: 0.28),
+                  blurRadius: size * 0.35,
+                  spreadRadius: 1,
+                ),
+              ]
+            : null,
+      ),
+      child: ClipOval(
+        child: Image.asset(
+          'assets/images/app_icon.png',
+          width: size,
+          height: size,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            return CustomPaint(
+              size: Size(size, size),
+              painter: _BrandMarkPainter(),
+            );
+          },
+        ),
       ),
     );
   }
