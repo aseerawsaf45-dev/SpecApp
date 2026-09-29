@@ -40,4 +40,14 @@ class LucideIcons {
   static const IconData messageSquare = Icons.chat_bubble_outline;
   static const IconData phoneCall = Icons.phone_in_talk_outlined;
   static const IconData userX = Icons.person_off_outlined;
+  static const IconData qrCode = Icons.qr_code_scanner;
+  static const IconData copy = Icons.copy;
+  static const IconData filter = Icons.filter_list;
+  static const IconData download = Icons.download_outlined;
+  static const IconData refresh = Icons.refresh;
+  static const IconData thumbUp = Icons.thumb_up_alt_outlined;
+  static const IconData flame = Icons.local_fire_department_outlined;
+  static const IconData heart = Icons.favorite_border;
+  static const IconData trash = Icons.delete_outline;
+  static const IconData sliders = Icons.tune;
 }

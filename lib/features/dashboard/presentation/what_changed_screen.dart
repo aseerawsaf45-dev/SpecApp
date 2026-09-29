@@ -1,27 +1,58 @@
-import '../../../shared/widgets/gradient_mesh_background.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/state/models/event_ops_models.dart';
+import '../../../core/state/operations_state.dart';
 import '../../../shared/widgets/command_card.dart';
+import '../../../shared/widgets/gradient_mesh_background.dart';
 import '../../../shared/widgets/pressable_scale.dart';
 import '../../../shared/widgets/pulsing_beacon.dart';
 import '../../../shared/widgets/staggered_entrance.dart';
 
-class WhatChangedScreen extends StatefulWidget {
+class WhatChangedScreen extends ConsumerStatefulWidget {
   const WhatChangedScreen({super.key});
 
   @override
-  State<WhatChangedScreen> createState() => _WhatChangedScreenState();
+  ConsumerState<WhatChangedScreen> createState() => _WhatChangedScreenState();
 }
 
-class _WhatChangedScreenState extends State<WhatChangedScreen> {
+class _WhatChangedScreenState extends ConsumerState<WhatChangedScreen> {
   int _selectedFilterIndex = 0;
   final List<String> _filters = ['ALL', 'DECISIONS', 'DOCUMENTS', 'SCHEDULE'];
+  String _searchQuery = '';
+  final TextEditingController _searchController = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
+    final ops = ref.watch(operationsProvider);
+    final allLogs = ops.auditLogs;
+
+    final filtered = allLogs.where((log) {
+      if (_selectedFilterIndex != 0) {
+        final targetCat = _filters[_selectedFilterIndex];
+        if (!log.category.toUpperCase().contains(targetCat)) {
+          return false;
+        }
+      }
+      if (_searchQuery.isNotEmpty) {
+        final q = _searchQuery.toLowerCase();
+        return log.title.toLowerCase().contains(q) ||
+            log.description.toLowerCase().contains(q) ||
+            log.category.toLowerCase().contains(q);
+      }
+      return true;
+    }).toList();
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
@@ -30,7 +61,13 @@ class _WhatChangedScreenState extends State<WhatChangedScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: PressableScale(
-          onTap: () => context.pop(),
+          onTap: () {
+            if (Navigator.of(context).canPop()) {
+              context.pop();
+            } else {
+              context.go('/dashboard');
+            }
+          },
           child: const Icon(LucideIcons.arrowLeft, color: AppColors.white),
         ),
         title: Text(
@@ -42,6 +79,21 @@ class _WhatChangedScreenState extends State<WhatChangedScreen> {
             letterSpacing: 1.0,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.download, color: AppColors.mutedWhite, size: 20),
+            onPressed: () {
+              final manifest = allLogs.map((l) => '[${l.time}] (${l.category}) ${l.title}: ${l.description}').join('\n');
+              Clipboard.setData(ClipboardData(text: '=== OPERATIONS AUDIT LEDGER ===\n$manifest'));
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  backgroundColor: AppColors.charcoal,
+                  content: Text('Audit ledger export copied to clipboard.'),
+                ),
+              );
+            },
+          ),
+        ],
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(1),
           child: Container(color: AppColors.darkBorder.withValues(alpha: 0.6), height: 1),
@@ -50,187 +102,194 @@ class _WhatChangedScreenState extends State<WhatChangedScreen> {
       body: GradientMeshBackground(
         child: SafeArea(
           child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            StaggeredEntrance(
-              index: 0,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'OPERATIONAL DELTA',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.mutedWhite,
-                      letterSpacing: 1.5,
-                    ),
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                StaggeredEntrance(
+                  index: 0,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'OPERATIONAL DELTA',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.mutedWhite,
+                          letterSpacing: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'WHAT CHANGED?',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primaryYellow,
+                          letterSpacing: -0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Verified operational state updates since your last terminal session.',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                          color: AppColors.mutedWhite,
+                          height: 1.4,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    'WHAT CHANGED?',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 28,
-                      fontWeight: FontWeight.w800,
-                      color: AppColors.primaryYellow,
-                      letterSpacing: -0.5,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    'Verified operational state updates since your last terminal session.',
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.mutedWhite,
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(height: 20),
-
-            // Continuous Gliding Filter Selector
-            StaggeredEntrance(
-              index: 1,
-              child: Container(
-                height: 44,
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: AppColors.charcoal,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.darkBorder),
                 ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    final itemWidth = constraints.maxWidth / _filters.length;
-                    return Stack(
-                      children: [
-                        // Gliding Indicator
-                        AnimatedPositioned(
-                          duration: const Duration(milliseconds: 250),
-                          curve: Curves.easeOutCubic,
-                          left: _selectedFilterIndex * itemWidth,
-                          top: 0,
-                          bottom: 0,
-                          width: itemWidth,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              gradient: AppColors.primaryGradient,
-                              borderRadius: BorderRadius.circular(9),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primaryYellow.withValues(alpha: 0.35),
-                                  blurRadius: 10,
-                                ),
-                              ],
-                            ),
+                const SizedBox(height: 18),
+
+                // Search Box
+                Container(
+                  height: 42,
+                  decoration: BoxDecoration(
+                    color: AppColors.charcoal,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(color: AppColors.darkBorder),
+                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Row(
+                    children: [
+                      const Icon(LucideIcons.search, size: 16, color: AppColors.primaryYellow),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: _searchController,
+                          onChanged: (val) => setState(() => _searchQuery = val),
+                          style: GoogleFonts.plusJakartaSans(fontSize: 12, color: AppColors.white),
+                          decoration: InputDecoration(
+                            hintText: 'Filter changes by keywords...',
+                            hintStyle: GoogleFonts.plusJakartaSans(fontSize: 12, color: const Color(0xFF6E6E6E)),
+                            border: InputBorder.none,
+                            isDense: true,
                           ),
                         ),
-                        // Filter Buttons
-                        Row(
-                          children: List.generate(_filters.length, (i) {
-                            final isSelected = _selectedFilterIndex == i;
-                            return SizedBox(
+                      ),
+                      if (_searchQuery.isNotEmpty)
+                        IconButton(
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(minWidth: 20, minHeight: 20),
+                          icon: const Icon(LucideIcons.x, size: 14, color: AppColors.mutedWhite),
+                          onPressed: () {
+                            _searchController.clear();
+                            setState(() => _searchQuery = '');
+                          },
+                        ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 14),
+
+                // Continuous Gliding Filter Selector
+                StaggeredEntrance(
+                  index: 1,
+                  child: Container(
+                    height: 44,
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppColors.charcoal,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppColors.darkBorder),
+                    ),
+                    child: LayoutBuilder(
+                      builder: (context, constraints) {
+                        final itemWidth = constraints.maxWidth / _filters.length;
+                        return Stack(
+                          children: [
+                            AnimatedPositioned(
+                              duration: const Duration(milliseconds: 250),
+                              curve: Curves.easeOutCubic,
+                              left: _selectedFilterIndex * itemWidth,
+                              top: 0,
+                              bottom: 0,
                               width: itemWidth,
-                              child: PressableScale(
-                                onTap: () => setState(() => _selectedFilterIndex = i),
-                                child: Center(
-                                  child: AnimatedDefaultTextStyle(
-                                    duration: const Duration(milliseconds: 200),
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w800,
-                                      color: isSelected ? AppColors.deepBlack : AppColors.mutedWhite,
-                                      letterSpacing: 0.8,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  gradient: AppColors.primaryGradient,
+                                  borderRadius: BorderRadius.circular(9),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: AppColors.primaryYellow.withValues(alpha: 0.35),
+                                      blurRadius: 10,
                                     ),
-                                    child: Text(_filters[i]),
-                                  ),
+                                  ],
                                 ),
                               ),
-                            );
-                          }),
-                        ),
-                      ],
-                    );
-                  },
+                            ),
+                            Row(
+                              children: List.generate(_filters.length, (i) {
+                                final isSelected = _selectedFilterIndex == i;
+                                return SizedBox(
+                                  width: itemWidth,
+                                  child: PressableScale(
+                                    onTap: () => setState(() => _selectedFilterIndex = i),
+                                    child: Center(
+                                      child: AnimatedDefaultTextStyle(
+                                        duration: const Duration(milliseconds: 200),
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                          color: isSelected ? AppColors.deepBlack : AppColors.mutedWhite,
+                                          letterSpacing: 0.8,
+                                        ),
+                                        child: Text(_filters[i]),
+                                      ),
+                                    ),
+                                  ),
+                                );
+                              }),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
+                  ),
                 ),
-              ),
-            ),
-            const SizedBox(height: 28),
+                const SizedBox(height: 24),
 
-            // Timeline Items
-            StaggeredEntrance(
-              index: 2,
-              child: _buildTimelineItem(
-                context,
-                time: '09:20 AM',
-                category: 'DOCUMENTS',
-                title: 'Participant Master List v3',
-                description: 'Registration Team finalized booth allocations and participant IDs.',
-                isHighlight: true,
-                icon: LucideIcons.fileSpreadsheet,
-              ),
+                // Dynamic Timeline Items
+                if (filtered.isEmpty)
+                  Center(
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 40),
+                      child: Text(
+                        'No operational updates in this category.',
+                        style: GoogleFonts.plusJakartaSans(color: AppColors.mutedWhite, fontSize: 13),
+                      ),
+                    ),
+                  )
+                else
+                  ...List.generate(filtered.length, (i) {
+                    final item = filtered[i];
+                    final isLast = i == filtered.length - 1;
+                    return StaggeredEntrance(
+                      index: i + 2,
+                      child: _buildTimelineItem(
+                        context,
+                        item: item,
+                        isLast: isLast,
+                        onTap: item.route != null ? () => context.push(item.route!) : null,
+                      ),
+                    );
+                  }),
+                const SizedBox(height: 20),
+              ],
             ),
-            
-            StaggeredEntrance(
-              index: 3,
-              child: _buildTimelineItem(
-                context,
-                time: '09:12 AM',
-                category: 'DECISIONS',
-                title: 'Directive #024: Venue Check-in Relocation',
-                description: 'Registration moved to Auditorium Main Entrance to prevent Gate 1 choke point.',
-                isHighlight: true,
-                icon: LucideIcons.fileSignature,
-                onTap: () => context.push('/decision/024'),
-              ),
-            ),
-            
-            StaggeredEntrance(
-              index: 4,
-              child: _buildTimelineItem(
-                context,
-                time: '08:47 AM',
-                category: 'SCHEDULE',
-                title: 'Keynote Speaker Schedule Shift',
-                description: 'Flight delay adjustment: Keynote moved from 10:15 AM to 10:45 AM.',
-                icon: LucideIcons.clock,
-              ),
-            ),
-            
-            StaggeredEntrance(
-              index: 5,
-              child: _buildTimelineItem(
-                context,
-                time: '08:31 AM',
-                category: 'SYSTEM',
-                title: 'Registration Verification Protocol',
-                description: 'Decentralized terminal sync confirmed across all 6 gate scanners.',
-                icon: LucideIcons.checkCircle,
-                isLast: true,
-              ),
-            ),
-            const SizedBox(height: 20),
-          ],
+          ),
         ),
       ),
-    ),
-  ),
-);
-}
+    );
+  }
 
   Widget _buildTimelineItem(
     BuildContext context, {
-    required String time,
-    required String category,
-    required String title,
-    required String description,
-    required IconData icon,
-    bool isHighlight = false,
+    required AuditTrailItem item,
     bool isLast = false,
     VoidCallback? onTap,
   }) {
@@ -245,11 +304,11 @@ class _WhatChangedScreenState extends State<WhatChangedScreen> {
               child: Padding(
                 padding: const EdgeInsets.only(top: 4.0),
                 child: Text(
-                  time,
+                  item.time,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 11,
-                    fontWeight: isHighlight ? FontWeight.w800 : FontWeight.w500,
-                    color: isHighlight ? AppColors.primaryYellow : const Color(0xFF6E6E6E),
+                    fontWeight: item.isHighlight ? FontWeight.w800 : FontWeight.w500,
+                    color: item.isHighlight ? AppColors.primaryYellow : const Color(0xFF6E6E6E),
                   ),
                 ),
               ),
@@ -258,7 +317,7 @@ class _WhatChangedScreenState extends State<WhatChangedScreen> {
           const SizedBox(width: 8),
           Column(
             children: [
-              if (isHighlight)
+              if (item.isHighlight)
                 const PulsingBeacon(dotSize: 7, maxAuraSize: 16)
               else
                 Container(
@@ -288,8 +347,8 @@ class _WhatChangedScreenState extends State<WhatChangedScreen> {
                 onTap: onTap,
                 padding: const EdgeInsets.all(16),
                 borderRadius: 14,
-                borderColor: isHighlight ? AppColors.primaryYellow.withValues(alpha: 0.35) : AppColors.darkBorder,
-                hasPriorityGlow: isHighlight,
+                borderColor: item.isHighlight ? AppColors.primaryYellow.withValues(alpha: 0.35) : AppColors.darkBorder,
+                hasPriorityGlow: item.isHighlight,
                 glowColor: AppColors.primaryYellow,
                 glowBlur: 14,
                 child: Row(
@@ -298,14 +357,14 @@ class _WhatChangedScreenState extends State<WhatChangedScreen> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: isHighlight
+                        color: item.isHighlight
                             ? AppColors.primaryYellow.withValues(alpha: 0.12)
                             : AppColors.elevatedSurface,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
-                        icon,
-                        color: isHighlight ? AppColors.primaryYellow : AppColors.mutedWhite,
+                        item.icon,
+                        color: item.isHighlight ? AppColors.primaryYellow : AppColors.mutedWhite,
                         size: 18,
                       ),
                     ),
@@ -323,11 +382,11 @@ class _WhatChangedScreenState extends State<WhatChangedScreen> {
                                   borderRadius: BorderRadius.circular(4),
                                 ),
                                 child: Text(
-                                  category,
+                                  item.category,
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 8.5,
                                     fontWeight: FontWeight.w800,
-                                    color: isHighlight ? AppColors.primaryYellow : AppColors.mutedWhite,
+                                    color: item.isHighlight ? AppColors.primaryYellow : AppColors.mutedWhite,
                                     letterSpacing: 0.8,
                                   ),
                                 ),
@@ -340,7 +399,7 @@ class _WhatChangedScreenState extends State<WhatChangedScreen> {
                           ),
                           const SizedBox(height: 6),
                           Text(
-                            title,
+                            item.title,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
@@ -349,7 +408,7 @@ class _WhatChangedScreenState extends State<WhatChangedScreen> {
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            description,
+                            item.description,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               fontWeight: FontWeight.w500,

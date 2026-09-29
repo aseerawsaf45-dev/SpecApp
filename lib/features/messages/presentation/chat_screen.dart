@@ -1,79 +1,38 @@
-import '../../../shared/widgets/gradient_mesh_background.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_icons.dart';
 import '../../../core/constants/app_colors.dart';
+import '../../../core/state/models/event_ops_models.dart';
+import '../../../core/state/operations_state.dart';
 import '../../../shared/widgets/animated_glowing_border.dart';
+import '../../../shared/widgets/gradient_mesh_background.dart';
 import '../../../shared/widgets/pressable_scale.dart';
 import '../../../shared/widgets/pulsing_beacon.dart';
 import '../../../shared/widgets/staggered_entrance.dart';
 
-class ChatScreen extends StatefulWidget {
+class ChatScreen extends ConsumerStatefulWidget {
   final String channelName;
-  
+
   const ChatScreen({super.key, required this.channelName});
 
   @override
-  State<ChatScreen> createState() => _ChatScreenState();
+  ConsumerState<ChatScreen> createState() => _ChatScreenState();
 }
 
-class _ChatMessageItem {
-  final String sender;
-  final String role;
-  final String time;
-  final String message;
-  final bool isDecision;
-  final String? decisionId;
-
-  _ChatMessageItem({
-    required this.sender,
-    required this.role,
-    required this.time,
-    required this.message,
-    this.isDecision = false,
-    this.decisionId,
-  });
-}
-
-class _ChatScreenState extends State<ChatScreen> {
+class _ChatScreenState extends ConsumerState<ChatScreen> {
   final TextEditingController _controller = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  bool _isUrgentMode = false;
 
-  late final List<_ChatMessageItem> _messages;
-
-  @override
-  void initState() {
-    super.initState();
-    _messages = [
-      _ChatMessageItem(
-        sender: 'Salman Farshi Alam',
-        role: 'Event Lead',
-        time: '09:12 AM',
-        message: 'The registration location has been changed to the Auditorium Entrance due to expected crowd movement from the main gate.',
-      ),
-      _ChatMessageItem(
-        sender: 'Decision Bot',
-        role: 'Operations Engine',
-        time: '09:12 AM',
-        message: 'Registration Desk Location updated to Auditorium Entrance.',
-        isDecision: true,
-        decisionId: '024',
-      ),
-      _ChatMessageItem(
-        sender: 'Foysal',
-        role: 'Coordinator',
-        time: '09:15 AM',
-        message: 'Noted. I will update the volunteer allocation sheet and floor signage immediately.',
-      ),
-      _ChatMessageItem(
-        sender: 'Tahsina',
-        role: 'Logistics',
-        time: '09:22 AM',
-        message: 'Power cables and network check at Auditorium lobby confirmed operational.',
-      ),
-    ];
-  }
+  final List<String> _quickPrompts = [
+    'All clear at Gate 2',
+    'Relief volunteer needed',
+    'Power & AV check OK',
+    'VIP Escort protocol active',
+    'Decision verified & executed',
+  ];
 
   @override
   void dispose() {
@@ -82,26 +41,23 @@ class _ChatScreenState extends State<ChatScreen> {
     super.dispose();
   }
 
-  void _sendMessage() {
-    final text = _controller.text.trim();
+  void _sendMessage([String? textToSend]) {
+    final text = textToSend ?? _controller.text.trim();
     if (text.isEmpty) return;
 
-    setState(() {
-      _messages.add(
-        _ChatMessageItem(
-          sender: 'Salman Farshi Alam',
-          role: 'Event Lead',
-          time: 'Now',
-          message: text,
-        ),
-      );
-    });
+    ref.read(operationsProvider).sendChatMessage(
+      widget.channelName,
+      text,
+      isUrgent: _isUrgentMode,
+    );
+
     _controller.clear();
+    setState(() => _isUrgentMode = false);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
-          _scrollController.position.maxScrollExtent,
+          _scrollController.position.maxScrollExtent + 80,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOutCubic,
         );
@@ -111,6 +67,9 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final ops = ref.watch(operationsProvider);
+    final messages = ops.getMessagesForChannel(widget.channelName);
+
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBodyBehindAppBar: true,
@@ -119,7 +78,13 @@ class _ChatScreenState extends State<ChatScreen> {
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         leading: PressableScale(
-          onTap: () => context.pop(),
+          onTap: () {
+            if (Navigator.of(context).canPop()) {
+              context.pop();
+            } else {
+              context.go('/dashboard');
+            }
+          },
           child: const Icon(LucideIcons.arrowLeft, color: AppColors.white),
         ),
         title: Column(
@@ -140,7 +105,7 @@ class _ChatScreenState extends State<ChatScreen> {
               ],
             ),
             Text(
-              'Event Operations · 47 Members Online',
+              'Event Operations · 43 Officers On Duty',
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 11,
                 fontWeight: FontWeight.w500,
@@ -151,12 +116,8 @@ class _ChatScreenState extends State<ChatScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(LucideIcons.search, color: AppColors.mutedWhite),
-            onPressed: () {},
-          ),
-          IconButton(
             icon: const Icon(LucideIcons.users, color: AppColors.mutedWhite),
-            onPressed: () {},
+            onPressed: () => context.push('/team_roster'),
           ),
         ],
         bottom: PreferredSize(
@@ -167,68 +128,105 @@ class _ChatScreenState extends State<ChatScreen> {
       body: GradientMeshBackground(
         child: SafeArea(
           child: Column(
-        children: [
-          Expanded(
-            child: ListView.builder(
-              controller: _scrollController,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-              itemCount: _messages.length + 1,
-              itemBuilder: (context, index) {
-                if (index == 0) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 24),
-                    child: Center(
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-                        decoration: BoxDecoration(
-                          color: AppColors.charcoal,
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(color: AppColors.darkBorder),
+            children: [
+              Expanded(
+                child: ListView.builder(
+                  controller: _scrollController,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+                  itemCount: messages.length + 1,
+                  itemBuilder: (context, index) {
+                    if (index == 0) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                            decoration: BoxDecoration(
+                              color: AppColors.charcoal,
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.darkBorder),
+                            ),
+                            child: Text(
+                              'Beginning of #${widget.channelName} transmission feed',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.mutedWhite,
+                              ),
+                            ),
+                          ),
                         ),
-                        child: Text(
-                          'Beginning of #${widget.channelName}',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.mutedWhite,
+                      );
+                    }
+
+                    final item = messages[index - 1];
+                    if (item.isDecision) {
+                      return StaggeredEntrance(
+                        index: index,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 20),
+                          child: _buildDecisionCard(context, item),
+                        ),
+                      );
+                    }
+
+                    return StaggeredEntrance(
+                      index: index,
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 18),
+                        child: _buildMessageBubble(context, item, ops),
+                      ),
+                    );
+                  },
+                ),
+              ),
+
+              // Quick Tactical Prompts Bar
+              Container(
+                height: 38,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  itemCount: _quickPrompts.length,
+                  itemBuilder: (context, i) {
+                    final p = _quickPrompts[i];
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: InkWell(
+                        onTap: () => _sendMessage(p),
+                        borderRadius: BorderRadius.circular(16),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: AppColors.charcoal,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(color: AppColors.darkBorder),
+                          ),
+                          child: Text(
+                            p,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.mutedWhite,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  );
-                }
+                    );
+                  },
+                ),
+              ),
 
-                final item = _messages[index - 1];
-                if (item.isDecision) {
-                  return StaggeredEntrance(
-                    index: index,
-                    child: Padding(
-                      padding: const EdgeInsets.only(bottom: 20),
-                      child: _buildDecisionCard(context, item),
-                    ),
-                  );
-                }
-
-                return StaggeredEntrance(
-                  index: index,
-                  child: Padding(
-                    padding: const EdgeInsets.only(bottom: 20),
-                    child: _buildMessageBubble(context, item),
-                  ),
-                );
-              },
-            ),
+              _buildMessageInput(context),
+            ],
           ),
-          _buildMessageInput(context),
-        ],
         ),
       ),
-    ),
-  );
-}
+    );
+  }
 
-  Widget _buildMessageBubble(BuildContext context, _ChatMessageItem item) {
-    final isMe = item.sender == 'Salman Farshi Alam';
+  Widget _buildMessageBubble(BuildContext context, ChatMessageModel item, OperationsNotifier ops) {
+    final isMe = item.sender == ops.currentUserName;
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -237,7 +235,7 @@ class _ChatScreenState extends State<ChatScreen> {
           radius: 17,
           backgroundColor: isMe ? AppColors.primaryYellow : AppColors.charcoal,
           child: Text(
-            item.sender[0],
+            item.sender.isNotEmpty ? item.sender[0] : 'U',
             style: GoogleFonts.plusJakartaSans(
               fontSize: 13,
               fontWeight: FontWeight.w800,
@@ -287,25 +285,127 @@ class _ChatScreenState extends State<ChatScreen> {
                       color: const Color(0xFF6E6E6E),
                     ),
                   ),
+                  if (item.isUrgent) ...[
+                    const SizedBox(width: 6),
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                      decoration: BoxDecoration(
+                        color: AppColors.statusRed.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(4),
+                      ),
+                      child: Text(
+                        'URGENT',
+                        style: GoogleFonts.jetBrainsMono(
+                          fontSize: 8.5,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.statusRed,
+                        ),
+                      ),
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 6),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
-                  color: AppColors.charcoal,
+                  color: item.isUrgent
+                      ? const Color(0xFF240A0A)
+                      : AppColors.charcoal,
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppColors.darkBorder),
+                  border: Border.all(
+                    color: item.isUrgent
+                        ? AppColors.statusRed.withValues(alpha: 0.4)
+                        : AppColors.darkBorder,
+                  ),
                 ),
                 child: Text(
                   item.message,
                   style: GoogleFonts.plusJakartaSans(
-                    fontSize: 14,
+                    fontSize: 13.5,
                     height: 1.45,
                     fontWeight: FontWeight.w500,
                     color: AppColors.white,
                   ),
                 ),
+              ),
+
+              // Reactions Bar
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  ...item.reactions.entries.map((entry) {
+                    final emoji = entry.key;
+                    final count = entry.value;
+                    final isUserReacted = item.userReactions.contains(emoji);
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 6),
+                      child: InkWell(
+                        onTap: () => ops.toggleReaction(widget.channelName, item.id, emoji),
+                        borderRadius: BorderRadius.circular(8),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: isUserReacted
+                                ? AppColors.primaryYellow.withValues(alpha: 0.2)
+                                : AppColors.elevatedSurface,
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(
+                              color: isUserReacted ? AppColors.primaryYellow : AppColors.darkBorder,
+                            ),
+                          ),
+                          child: Text(
+                            '$emoji $count',
+                            style: GoogleFonts.jetBrainsMono(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: isUserReacted ? AppColors.primaryYellow : AppColors.mutedWhite,
+                            ),
+                          ),
+                        ),
+                      ),
+                    );
+                  }),
+                  // Quick add reactions button
+                  InkWell(
+                    onTap: () => ops.toggleReaction(widget.channelName, item.id, '👍'),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.elevatedSurface,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text('👍', style: TextStyle(fontSize: 10)),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  InkWell(
+                    onTap: () => ops.toggleReaction(widget.channelName, item.id, '🔥'),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.elevatedSurface,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text('🔥', style: TextStyle(fontSize: 10)),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  InkWell(
+                    onTap: () => ops.toggleReaction(widget.channelName, item.id, '✅'),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                      decoration: BoxDecoration(
+                        color: AppColors.elevatedSurface,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Text('✅', style: TextStyle(fontSize: 10)),
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
@@ -314,7 +414,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _buildDecisionCard(BuildContext context, _ChatMessageItem item) {
+  Widget _buildDecisionCard(BuildContext context, ChatMessageModel item) {
     return Padding(
       padding: const EdgeInsets.only(left: 46),
       child: AnimatedGlowingBorder(
@@ -334,7 +434,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   const Icon(LucideIcons.fileSignature, color: AppColors.primaryYellow, size: 16),
                   const SizedBox(width: 6),
                   Text(
-                    'OPERATIONAL DECISION #${item.decisionId ?? "024"}',
+                    'OPERATIONAL DIRECTIVE #${item.decisionId ?? "024"}',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
@@ -369,7 +469,7 @@ class _ChatScreenState extends State<ChatScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(
-                        'VIEW DECISION LOG',
+                        'OPEN DIRECTIVE BALLOT',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           fontWeight: FontWeight.w800,
@@ -392,7 +492,7 @@ class _ChatScreenState extends State<ChatScreen> {
 
   Widget _buildMessageInput(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       decoration: const BoxDecoration(
         color: AppColors.primaryBlack,
         border: Border(top: BorderSide(color: AppColors.darkBorder)),
@@ -400,16 +500,26 @@ class _ChatScreenState extends State<ChatScreen> {
       child: SafeArea(
         child: Row(
           children: [
-            PressableScale(
-              onTap: () {},
+            // Urgent Toggle Button
+            InkWell(
+              onTap: () => setState(() => _isUrgentMode = !_isUrgentMode),
+              borderRadius: BorderRadius.circular(10),
               child: Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.charcoal,
+                  color: _isUrgentMode
+                      ? AppColors.statusRed.withValues(alpha: 0.2)
+                      : AppColors.charcoal,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppColors.darkBorder),
+                  border: Border.all(
+                    color: _isUrgentMode ? AppColors.statusRed : AppColors.darkBorder,
+                  ),
                 ),
-                child: const Icon(LucideIcons.plusCircle, color: AppColors.mutedWhite, size: 20),
+                child: Icon(
+                  LucideIcons.alertTriangle,
+                  color: _isUrgentMode ? AppColors.statusRed : AppColors.mutedWhite,
+                  size: 18,
+                ),
               ),
             ),
             const SizedBox(width: 10),
@@ -418,7 +528,11 @@ class _ChatScreenState extends State<ChatScreen> {
                 decoration: BoxDecoration(
                   color: AppColors.elevatedSurface,
                   borderRadius: BorderRadius.circular(24),
-                  border: Border.all(color: AppColors.darkBorder),
+                  border: Border.all(
+                    color: _isUrgentMode
+                        ? AppColors.statusRed.withValues(alpha: 0.5)
+                        : AppColors.darkBorder,
+                  ),
                 ),
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: TextField(
@@ -429,10 +543,14 @@ class _ChatScreenState extends State<ChatScreen> {
                     color: AppColors.white,
                   ),
                   decoration: InputDecoration(
-                    hintText: 'Message #${widget.channelName}...',
+                    hintText: _isUrgentMode
+                        ? 'Broadcasting urgent alert in #${widget.channelName}...'
+                        : 'Message #${widget.channelName}...',
                     hintStyle: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      color: AppColors.mutedWhite.withValues(alpha: 0.6),
+                      fontSize: 13,
+                      color: _isUrgentMode
+                          ? AppColors.statusRed.withValues(alpha: 0.7)
+                          : AppColors.mutedWhite.withValues(alpha: 0.6),
                     ),
                     border: InputBorder.none,
                     isDense: true,
@@ -443,23 +561,26 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
             const SizedBox(width: 10),
             PressableScale(
-              onTap: _sendMessage,
+              onTap: () => _sendMessage(),
               child: Container(
                 width: 42,
                 height: 42,
                 decoration: BoxDecoration(
-                  gradient: AppColors.primaryGradient,
+                  gradient: _isUrgentMode
+                      ? const LinearGradient(colors: [Color(0xFFDC2626), Color(0xFFEF4444)])
+                      : AppColors.primaryGradient,
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.primaryYellow.withValues(alpha: 0.35),
+                      color: (_isUrgentMode ? AppColors.statusRed : AppColors.primaryYellow)
+                          .withValues(alpha: 0.35),
                       blurRadius: 10,
                     ),
                   ],
                 ),
-                child: const Icon(
+                child: Icon(
                   LucideIcons.send,
-                  color: AppColors.deepBlack,
+                  color: _isUrgentMode ? Colors.white : AppColors.deepBlack,
                   size: 18,
                 ),
               ),
